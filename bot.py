@@ -3,11 +3,25 @@ import asyncio
 import random
 import json
 import time
+import sys
 from pyrogram import Client, filters
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# === ЛОГИРОВАНИЕ ===
+print("🔍 Проверка переменных окружения...", file=sys.stderr)
+print(f"API_ID: {os.getenv('API_ID')}", file=sys.stderr)
+print(f"API_HASH: {os.getenv('API_HASH')[:10]}...", file=sys.stderr)
+print(f"STRING_SESSION: {len(os.getenv('STRING_SESSION', ''))} символов", file=sys.stderr)
+print(f"DASHSCOPE_API_KEY: {os.getenv('DASHSCOPE_API_KEY', '')[:15]}...", file=sys.stderr)
+
+if not all([os.getenv('API_ID'), os.getenv('API_HASH'), os.getenv('STRING_SESSION'), os.getenv('DASHSCOPE_API_KEY')]):
+    print("❌ ОШИБКА: Не все переменные окружения установлены!", file=sys.stderr)
+    sys.exit(1)
+
+print("✅ Все переменные на месте!", file=sys.stderr)
 
 app = Client(
     "my_userbot",
@@ -16,10 +30,17 @@ app = Client(
     session_string=os.getenv("STRING_SESSION")
 )
 
-ai_client = OpenAI(
-    base_url="https://ws-y7znpxq9v24qsaeo.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
-    api_key=os.getenv("DASHSCOPE_API_KEY")
-)
+print("🔌 Подключение к Telegram...", file=sys.stderr)
+
+try:
+    ai_client = OpenAI(
+        base_url="https://ws-y7znpxq9v24qsaeo.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
+        api_key=os.getenv("DASHSCOPE_API_KEY")
+    )
+    print("✅ OpenAI клиент создан!", file=sys.stderr)
+except Exception as e:
+    print(f"❌ Ошибка создания OpenAI клиента: {e}", file=sys.stderr)
+    sys.exit(1)
 
 is_away = False
 current_status = "занят"
@@ -241,7 +262,8 @@ async def admin_commands(client, message):
             await message.reply_text(text)
         else:
             await message.reply_text("✅ Никто не замьючен")
-
+# === ЗАПУСК ===
 if __name__ == "__main__":
-    print("🚀 Сирена запущена с ИИ-судьёй!")
+    print("🚀 Сирена запущена с ИИ-судьёй!", flush=True)
+    print("📱 Userbot активен и ждёт сообщений...", flush=True)
     app.run()
