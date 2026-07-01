@@ -3,12 +3,24 @@ import asyncio
 import random
 import json
 import time
+import sys
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes, CommandHandler
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# === ЛОГИРОВАНИЕ ===
+print("🔍 Проверка переменных для public_bot...", file=sys.stderr)
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+print(f"BOT_TOKEN: {BOT_TOKEN[:20]}..." if BOT_TOKEN else "❌ BOT_TOKEN не найден!", file=sys.stderr)
+
+if not BOT_TOKEN:
+    print("❌ ОШИБКА: BOT_TOKEN не установлен!", file=sys.stderr)
+    sys.exit(1)
+
+print("✅ BOT_TOKEN на месте!", file=sys.stderr)
 
 # === НАСТРОЙКИ ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -287,6 +299,17 @@ def main():
     print("🤖 Публичный бот @sirena_personal_bot запущен!")
     print("💡 Пользователи используют СВОИ API ключи!")
     app.run_polling()
-
+def main():
+    print(" Создание приложения...", file=sys.stderr)
+    app = Application.builder().token(BOT_TOKEN).build()
+    
+    app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("help", cmd_help))
+    app.add_handler(CommandHandler("reset", cmd_reset))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    print("🤖 Публичный бот @sirena_personal_bot запущен!", file=sys.stderr)
+    print("💡 Пользователи используют СВОИ API ключи!", file=sys.stderr)
+    app.run_polling()
 if __name__ == "__main__":
     main()
